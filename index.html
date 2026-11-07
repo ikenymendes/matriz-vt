@@ -945,20 +945,42 @@ function loginCSS(){if(document.getElementById("lgcss"))return;const st=document
 @keyframes lgf{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,34px)}}
 #login .lggrid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 30% 40%,#000 0,transparent 75%);-webkit-mask-image:radial-gradient(circle at 30% 40%,#000 0,transparent 75%)}
 #login .lgL>*{position:relative;z-index:1}
-#login .lglogo{height:34px;width:auto;display:block}#login .lgbrand{border:0;padding:0;font-weight:800;letter-spacing:.14em;font-size:13px;opacity:.9;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+#login .lgbb{width:min(580px,100%,max(340px,calc((100vh - 500px)*1.78)));margin-top:18px;position:relative;outline:0}
+#login .lgscr{position:relative;aspect-ratio:16/9;border:10px solid #fff;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#0d1050,#1B1F7A 60%,#2a2f9a);box-shadow:0 22px 50px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.2) inset;cursor:pointer;animation:lgu 6s ease-in-out infinite}
+#login .lgscr:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 2px,transparent 2px 5px);pointer-events:none;z-index:3}
+#login .lgscr>div{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .4s}
+#login .s1 i{position:absolute;display:block;border-radius:99px;background:#fff;opacity:.5}
+#login .s1 .a{left:9%;top:16%;width:42%;height:9%;background:#F5457F;opacity:1}
+#login .s1 .b{left:9%;top:36%;width:60%;height:6%}
+#login .s1 .c{left:9%;top:50%;width:48%;height:6%;opacity:.28}
+#login .s1 .d{right:9%;bottom:14%;width:22%;aspect-ratio:1;border-radius:50%;background:#F5457F;opacity:.9}
+#login .s2,#login .s3{opacity:0}
+#login .s2 img{width:68%;height:auto;display:block}
+#login .s3{gap:4px;text-align:center;font-weight:800;letter-spacing:.06em;color:#fff;font-size:clamp(20px,2.7vw,40px);line-height:1.15}
+#login .s3 b{color:#FF4D8D;font-weight:900}
+#login .lgbb:hover .s1,#login .lgbb:focus .s1{opacity:0}
+#login .lgbb:hover .s2,#login .lgbb:focus .s2{animation:lgs2 2.3s ease forwards}
+#login .lgbb:hover .s3,#login .lgbb:focus .s3{animation:lgs3 .9s ease 1.9s forwards}
+@keyframes lgs2{0%{opacity:0;transform:scale(.88)}18%{opacity:1;transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:scale(1.06)}}
+@keyframes lgs3{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+#login .lgpole{width:14px;height:clamp(26px,5vh,52px);background:linear-gradient(90deg,#d9dcf5,#fff,#c9cdf0);margin:0 auto}
+#login .lgbase{width:36%;height:9px;border-radius:5px;background:rgba(255,255,255,.55);margin:0 auto}
+#login .lghint{white-space:nowrap;text-align:center;font-size:12px;opacity:.6;margin-top:10px;transition:opacity .3s}
+#login .lgbb:hover .lghint{opacity:0}
+#login .lglogo{height:clamp(50px,min(6.4vw,9vh),84px);width:auto;display:block;margin-bottom:22px}#login .lgbrand{border:0;padding:0;font-weight:800;letter-spacing:.14em;font-size:13px;opacity:.9;text-transform:uppercase;display:flex;align-items:center;gap:10px}
 #login .lgbrand i{width:10px;height:10px;border-radius:50%;background:#F5457F;box-shadow:0 0 0 0 rgba(245,69,127,.7);animation:lgp 2s infinite}
 @keyframes lgp{70%{box-shadow:0 0 0 12px rgba(245,69,127,0)}100%{box-shadow:0 0 0 0 rgba(245,69,127,0)}}
 #login .lghello{font-size:15px;opacity:.85;margin-bottom:6px}
-#login .lgclock{font-size:clamp(54px,8vw,92px);font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+#login .lgclock{font-size:clamp(44px,min(6vw,9.5vh),78px);font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
 #login .lgclock u{all:unset;color:#FF8DB8;animation:lgb 1s steps(2) infinite}
 @keyframes lgb{50%{opacity:.25}}
 #login .lgdow{font-size:clamp(20px,2.6vw,30px);font-weight:700;margin-top:10px;text-transform:capitalize}
 #login .lgdt{opacity:.8;margin-top:2px;font-size:15px}
-#login .lgbb{width:min(300px,70%);margin-top:26px;filter:drop-shadow(0 14px 30px rgba(0,0,0,.35));animation:lgu 6s ease-in-out infinite}
 @keyframes lgu{50%{transform:translateY(-8px)}}
 #login .lgfoot{font-size:12px;opacity:.65}
 #login .lgR{display:flex;align-items:center;justify-content:center;padding:28px 20px}
 #login form{width:100%;max-width:370px;animation:lgi .6s ease both}
+@media(max-height:800px){#login .lghint{display:none}#login .lgL{padding-top:30px;padding-bottom:26px}}
 @keyframes lgi{from{opacity:0;transform:translateY(14px)}}
 #login h2{text-transform:none;margin:0;font-size:26px;letter-spacing:-.02em;color:var(--ac)}
 #login .lgsub{color:var(--mu);margin:4px 0 22px;font-size:14px}
@@ -991,7 +1013,7 @@ function loginClock(){const c=document.getElementById("lgclk");if(!c)return;cons
  const w=document.getElementById("lgw");if(w)w.textContent=d.toLocaleDateString("pt-BR",{weekday:"long"});
  const t=document.getElementById("lgd");if(t)t.textContent=d.toLocaleDateString("pt-BR",{day:"numeric",month:"long",year:"numeric"})}
 function loginUI(msg,busy){loginCSS();let el=document.getElementById("login");if(!el){el=document.createElement("div");el.id="login";document.body.appendChild(el)}
- const bb='<svg class="lgbb" viewBox="0 0 300 190" aria-hidden="true"><rect x="40" y="8" width="220" height="118" rx="10" fill="#fff" opacity=".95"/><rect x="50" y="18" width="200" height="98" rx="6" fill="#1B1F7A"/><rect x="62" y="34" width="96" height="10" rx="5" fill="#F5457F"/><rect x="62" y="54" width="130" height="7" rx="3.5" fill="#fff" opacity=".6"/><rect x="62" y="68" width="110" height="7" rx="3.5" fill="#fff" opacity=".35"/><circle cx="218" cy="82" r="20" fill="#F5457F" opacity=".9"/><rect x="146" y="126" width="8" height="58" fill="#fff" opacity=".8"/><rect x="100" y="182" width="100" height="6" rx="3" fill="#fff" opacity=".5"/></svg>';
+ const bb=`<div class="lgbb" tabindex="0" aria-label="Painel Mega OOH"><div class="lgscr"><div class="s1"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div><div class="s2"><img src="${LOGO_W}" alt="Mega OOH"></div><div class="s3"><span>PENSE GRANDE,</span><b>PENSE MEGA</b></div></div><div class="lgpole"></div><div class="lgbase"></div><div class="lghint">passe o mouse no painel ✨</div></div>`;
  const right=busy?`<form id="lgf" onsubmit="return false"><h2>Matriz VT</h2><div class="lgsub">Mega Mídia OOH · acesso restrito</div><div class="lgbusy"><div class="lgspin"></div><div>${e(msg||"Conectando…")}</div></div></form>`:
  `<form id="lgf"><h2>Bem-vindo de volta</h2><div class="lgsub">Entre com o e-mail e a senha que o administrador criou para você.</div>
   <div class="lgfld"><input id="lge" type="email" autocomplete="username" placeholder=" " required><label for="lge">E-mail</label></div>

@@ -881,16 +881,86 @@ async function sbRefresh(){if(!SES||!SES.refresh)return false;if(RFP)return RFP;
  RFP=(async()=>{try{const r=await fetch(SBU+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:CFGC.anon,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:SES.refresh})});
   if(r.status===400||r.status===401||r.status===403){sesFim("Sua sessão expirou. Entre novamente.");return false}if(!r.ok)return false;setSes(await r.json());return true}catch(_){return false}finally{setTimeout(()=>{RFP=null},0)}})();return RFP}
 async function sb(path,o){o=o||{};const anon=!!o.anon;if(!anon&&SES&&SES.exp-Date.now()<60000)await sbRefresh();
- const h=Object.assign({apikey:CFGC.anon,"Content-Type":"application/json",Authorization:"Bearer "+((!anon&&SES)?SES.access:CFGC.anon)},o.h||{});
+ const h=Object.assign({apikey:CFGC.anon,"Content-Type":"application/json"},(!anon&&SES)?{Authorization:"Bearer "+SES.access}:{},o.h||{});
  const r=await fetch(SBU+path,{method:o.method||"GET",headers:h,body:o.body!==undefined?JSON.stringify(o.body):undefined});
  if(r.status===401&&!anon&&!o.retry&&SES&&await sbRefresh())return sb(path,Object.assign({},o,{retry:1}));return r}
-function loginUI(msg,busy){let el=document.getElementById("login");if(!el){el=document.createElement("div");el.id="login";el.style.cssText="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto";document.body.appendChild(el)}
- el.innerHTML=`<form id="lgf" style="background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sh);padding:26px;width:100%;max-width:360px"><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--ac)">Matriz VT</div><div class="mu" style="margin-bottom:16px">Mega Mídia OOH · acesso restrito</div>${busy?`<div class="mu">${e(msg||"Conectando…")}</div>`:`<input id="lge" type="email" autocomplete="username" placeholder="E-mail" required style="width:100%;margin-bottom:8px"><input id="lgp" type="password" autocomplete="current-password" placeholder="Senha" required style="width:100%"><div id="lgm" style="color:var(--er);font-size:13px;min-height:20px;margin:8px 0">${e(msg||"")}</div><button class="pri" id="lgb" style="width:100%" type="submit">Entrar</button>`}</form>`;
- if(!busy){const f=document.getElementById("lgf");f.onsubmit=async ev=>{ev.preventDefault();const b=document.getElementById("lgb"),m=document.getElementById("lgm");b.disabled=true;m.textContent="";
-  try{const r=await fetch(SBU+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:CFGC.anon,"Content-Type":"application/json"},body:JSON.stringify({email:document.getElementById("lge").value.trim(),password:document.getElementById("lgp").value})});
-   if(!r.ok){m.textContent=r.status===400||r.status===401?"E-mail ou senha incorretos.":"Não foi possível entrar ("+r.status+").";b.disabled=false;return}
-   setSes(await r.json());loginUI("Conectando…",true);await cloudStart()}catch(x){loginUI(x&&x.message?x.message:"Sem conexão com o servidor.")}};
-  const i=document.getElementById("lge");if(i)i.focus()}}
+function loginCSS(){if(document.getElementById("lgcss"))return;const st=document.createElement("style");st.id="lgcss";st.textContent=`
+#login{position:fixed;inset:0;z-index:9999;display:grid;grid-template-columns:1.1fr 1fr;background:var(--bg);overflow:auto}
+#login .lgL{position:relative;overflow:hidden;color:#fff;padding:44px 48px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(145deg,#12165f 0%,#1B1F7A 55%,#2a2f9a 100%)}
+#login .lgL:before,#login .lgL:after{content:"";position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:lgf 14s ease-in-out infinite}
+#login .lgL:before{width:380px;height:380px;background:#F5457F;right:-120px;top:-100px}
+#login .lgL:after{width:320px;height:320px;background:#4a52d8;left:-90px;bottom:-110px;animation-delay:-7s}
+@keyframes lgf{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,34px)}}
+#login .lggrid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 30% 40%,#000 0,transparent 75%);-webkit-mask-image:radial-gradient(circle at 30% 40%,#000 0,transparent 75%)}
+#login .lgL>*{position:relative;z-index:1}
+#login .lgbrand{border:0;padding:0;font-weight:800;letter-spacing:.14em;font-size:13px;opacity:.9;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+#login .lgbrand i{width:10px;height:10px;border-radius:50%;background:#F5457F;box-shadow:0 0 0 0 rgba(245,69,127,.7);animation:lgp 2s infinite}
+@keyframes lgp{70%{box-shadow:0 0 0 12px rgba(245,69,127,0)}100%{box-shadow:0 0 0 0 rgba(245,69,127,0)}}
+#login .lghello{font-size:15px;opacity:.85;margin-bottom:6px}
+#login .lgclock{font-size:clamp(54px,8vw,92px);font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+#login .lgclock u{all:unset;color:#FF8DB8;animation:lgb 1s steps(2) infinite}
+@keyframes lgb{50%{opacity:.25}}
+#login .lgdow{font-size:clamp(20px,2.6vw,30px);font-weight:700;margin-top:10px;text-transform:capitalize}
+#login .lgdt{opacity:.8;margin-top:2px;font-size:15px}
+#login .lgbb{width:min(300px,70%);margin-top:26px;filter:drop-shadow(0 14px 30px rgba(0,0,0,.35));animation:lgu 6s ease-in-out infinite}
+@keyframes lgu{50%{transform:translateY(-8px)}}
+#login .lgfoot{font-size:12px;opacity:.65}
+#login .lgR{display:flex;align-items:center;justify-content:center;padding:28px 20px}
+#login form{width:100%;max-width:370px;animation:lgi .6s ease both}
+@keyframes lgi{from{opacity:0;transform:translateY(14px)}}
+#login h2{text-transform:none;margin:0;font-size:26px;letter-spacing:-.02em;color:var(--ac)}
+#login .lgsub{color:var(--mu);margin:4px 0 22px;font-size:14px}
+#login .lgfld{position:relative;margin-bottom:12px}
+#login .lgfld input{width:100%;box-sizing:border-box;padding:20px 44px 8px 14px;border:1.5px solid var(--bd);border-radius:12px;font-size:15px;background:#fff;outline:none;transition:.2s}
+#login .lgfld input:focus{border-color:var(--acb);box-shadow:0 0 0 4px rgba(245,69,127,.12)}
+#login .lgfld label{position:absolute;left:14px;top:15px;font-size:15px;color:var(--mu);pointer-events:none;transition:.18s}
+#login .lgfld input:focus+label,#login .lgfld input:not(:placeholder-shown)+label{top:6px;font-size:11px;color:var(--acb);font-weight:700}
+#login .lgeye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;cursor:pointer;font-size:17px;padding:6px;opacity:.6}
+#login .lgeye:hover{opacity:1}
+#login .lgrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mu);margin:2px 0 6px}
+#login .lgrow label{display:flex;gap:6px;align-items:center;cursor:pointer;margin:0;font-weight:400;position:static}#login .lgrow input{width:auto;margin:0}
+#login #lgc{color:var(--wa);font-weight:600;display:none}
+#login #lgm{color:var(--er);font-size:13px;min-height:20px;margin:6px 0}
+#login #lgm.sh{animation:lgs .4s}
+@keyframes lgs{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+#login #lgb{width:100%;padding:13px;border:0;border-radius:12px;font-size:16px;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(90deg,#F5457F,#ff6a9c);box-shadow:0 8px 20px rgba(245,69,127,.3);transition:.2s}
+#login #lgb:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(245,69,127,.38)}
+#login #lgb:disabled{opacity:.7;cursor:wait;transform:none}
+#login .lgbusy{display:flex;align-items:center;gap:12px;color:var(--mu)}
+#login .lgspin{width:20px;height:20px;border:3px solid var(--ac2);border-top-color:var(--acb);border-radius:50%;animation:lgr .8s linear infinite}
+@keyframes lgr{to{transform:rotate(360deg)}}
+#login .lgnote{margin-top:18px;font-size:12px;color:var(--mu);text-align:center}
+@media(max-width:820px){#login{grid-template-columns:1fr;grid-template-rows:auto 1fr}#login .lgL{padding:26px 22px}#login .lgbb,#login .lgfoot{display:none}#login .lgclock{font-size:52px}}
+@media(prefers-reduced-motion:reduce){#login *,#login *:before,#login *:after{animation:none!important}}
+`;document.head.appendChild(st)}
+function loginClock(){const c=document.getElementById("lgclk");if(!c)return;const d=new Date(),h=d.getHours(),p=n=>String(n).padStart(2,"0");
+ c.innerHTML=p(h)+"<u>:</u>"+p(d.getMinutes())+"<em style='font-size:.4em;opacity:.7;margin-left:6px;font-weight:700;font-style:normal'>"+p(d.getSeconds())+"</em>";
+ const g=h<5?"Boa madrugada":h<12?"Bom dia":h<18?"Boa tarde":"Boa noite",H=document.getElementById("lgh");if(H)H.textContent=g+"! 👋";
+ const w=document.getElementById("lgw");if(w)w.textContent=d.toLocaleDateString("pt-BR",{weekday:"long"});
+ const t=document.getElementById("lgd");if(t)t.textContent=d.toLocaleDateString("pt-BR",{day:"numeric",month:"long",year:"numeric"})}
+function loginUI(msg,busy){loginCSS();let el=document.getElementById("login");if(!el){el=document.createElement("div");el.id="login";document.body.appendChild(el)}
+ const bb='<svg class="lgbb" viewBox="0 0 300 190" aria-hidden="true"><rect x="40" y="8" width="220" height="118" rx="10" fill="#fff" opacity=".95"/><rect x="50" y="18" width="200" height="98" rx="6" fill="#1B1F7A"/><rect x="62" y="34" width="96" height="10" rx="5" fill="#F5457F"/><rect x="62" y="54" width="130" height="7" rx="3.5" fill="#fff" opacity=".6"/><rect x="62" y="68" width="110" height="7" rx="3.5" fill="#fff" opacity=".35"/><circle cx="218" cy="82" r="20" fill="#F5457F" opacity=".9"/><rect x="146" y="126" width="8" height="58" fill="#fff" opacity=".8"/><rect x="100" y="182" width="100" height="6" rx="3" fill="#fff" opacity=".5"/></svg>';
+ const right=busy?`<form id="lgf" onsubmit="return false"><h2>Matriz VT</h2><div class="lgsub">Mega Mídia OOH · acesso restrito</div><div class="lgbusy"><div class="lgspin"></div><div>${e(msg||"Conectando…")}</div></div></form>`:
+ `<form id="lgf"><h2>Bem-vindo de volta</h2><div class="lgsub">Entre com o e-mail e a senha que o administrador criou para você.</div>
+  <div class="lgfld"><input id="lge" type="email" autocomplete="username" placeholder=" " required><label for="lge">E-mail</label></div>
+  <div class="lgfld"><input id="lgp" type="password" autocomplete="current-password" placeholder=" " required><label for="lgp">Senha</label><button type="button" class="lgeye" id="lgv" title="Mostrar/ocultar senha" aria-label="Mostrar ou ocultar senha">👁</button></div>
+  <div class="lgrow"><label><input type="checkbox" id="lgr"> Lembrar meu e-mail</label><span id="lgc">⚠ Caps Lock ligado</span></div>
+  <div id="lgm" role="alert">${e(msg||"")}</div><button id="lgb" type="submit">Entrar</button>
+  <div class="lgnote">Esqueceu a senha? Peça ao administrador para redefinir.</div></form>`;
+ el.innerHTML=`<div class="lgL"><div class="lggrid"></div><div class="lgbrand"><i></i>Mega Mídia OOH</div><div><div class="lghello" id="lgh"></div><div class="lgclock" id="lgclk"></div><div class="lgdow" id="lgw"></div><div class="lgdt" id="lgd"></div>${bb}</div><div class="lgfoot">Matriz VT × Painéis · Gestão operacional</div></div><div class="lgR">${right}</div>`;
+ loginClock();clearInterval(window.__lgt);window.__lgt=setInterval(()=>{if(!document.getElementById("lgclk")){clearInterval(window.__lgt);return}loginClock()},1000);
+ if(!busy){const f=document.getElementById("lgf"),I=document.getElementById("lge"),P=document.getElementById("lgp");
+  try{const m=localStorage.getItem("mvt_lg_email");if(m){I.value=m;document.getElementById("lgr").checked=true}}catch(_){}
+  document.getElementById("lgv").onclick=()=>{P.type=P.type==="password"?"text":"password";P.focus()};
+  const caps=ev=>{const c=document.getElementById("lgc");if(c&&ev.getModifierState)c.style.display=ev.getModifierState("CapsLock")?"inline":"none"};P.addEventListener("keydown",caps);P.addEventListener("keyup",caps);
+  const erro=t=>{const m=document.getElementById("lgm");m.textContent=t;m.classList.remove("sh");void m.offsetWidth;m.classList.add("sh")};
+  if(msg)erro(msg);
+  f.onsubmit=async ev=>{ev.preventDefault();const b=document.getElementById("lgb");b.disabled=true;b.textContent="Entrando…";document.getElementById("lgm").textContent="";
+   try{const mail=I.value.trim();const r=await fetch(SBU+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:CFGC.anon,"Content-Type":"application/json"},body:JSON.stringify({email:mail,password:P.value})});
+    if(!r.ok){erro(r.status===400||r.status===401?"E-mail ou senha incorretos.":"Não foi possível entrar ("+r.status+").");b.disabled=false;b.textContent="Entrar";return}
+    try{if(document.getElementById("lgr").checked)localStorage.setItem("mvt_lg_email",mail);else localStorage.removeItem("mvt_lg_email")}catch(_){}
+    setSes(await r.json());loginUI("Conectando…",true);await cloudStart()}catch(x){loginUI(x&&x.message?x.message:"Sem conexão com o servidor.")}};
+  (I.value?P:I).focus()}}
 function sesFim(msg,limpa){const uid=SES&&SES.uid;SES=null;ROLE="";PERFIL=null;USERS=null;try{localStorage.removeItem("mvt_ses")}catch(_){}
  if(limpa){try{localStorage.removeItem("mvt_cl_"+uid);localStorage.removeItem(KEY)}catch(_){}S=emptyS();fixS();snap();CL=null}
  loginUI(msg||"");try{bkLine()}catch(_){}}

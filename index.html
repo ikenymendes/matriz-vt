@@ -958,15 +958,16 @@ function loginCSS(){if(document.getElementById("lgcss"))return;const st=document
 #login .s2 img{width:68%;height:auto;display:block}
 #login .s3{gap:4px;text-align:center;font-weight:800;letter-spacing:.06em;color:#fff;font-size:clamp(20px,2.7vw,40px);line-height:1.15}
 #login .s3 b{color:#FF4D8D;font-weight:900}
-#login .lgbb:hover .s1,#login .lgbb:focus .s1{opacity:0}
-#login .lgbb:hover .s2,#login .lgbb:focus .s2{animation:lgs2 2.3s ease forwards}
-#login .lgbb:hover .s3,#login .lgbb:focus .s3{animation:lgs3 .9s ease 1.9s forwards}
-@keyframes lgs2{0%{opacity:0;transform:scale(.88)}18%{opacity:1;transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:scale(1.06)}}
-@keyframes lgs3{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+#login .s2{transform:scale(.9);transition:opacity .5s ease,transform .6s ease}
+#login .s3{transform:translateY(14px) scale(.97);transition:opacity .6s ease,transform .6s ease}
+#login .lgbb.t1 .s1{opacity:0}
+#login .lgbb.t1 .s2{opacity:1;transform:scale(1)}
+#login .lgbb.t2 .s2{opacity:0;transform:scale(1.06)}
+#login .lgbb.t2 .s3{opacity:1;transform:none}
+#login .lgbb.t1 .lghint{opacity:0}
 #login .lgpole{width:14px;height:clamp(26px,5vh,52px);background:linear-gradient(90deg,#d9dcf5,#fff,#c9cdf0);margin:0 auto}
 #login .lgbase{width:36%;height:9px;border-radius:5px;background:rgba(255,255,255,.55);margin:0 auto}
 #login .lghint{white-space:nowrap;text-align:center;font-size:12px;opacity:.6;margin-top:10px;transition:opacity .3s}
-#login .lgbb:hover .lghint{opacity:0}
 #login .lglogo{height:clamp(50px,min(6.4vw,9vh),84px);width:auto;display:block;margin-bottom:22px}#login .lgbrand{border:0;padding:0;font-weight:800;letter-spacing:.14em;font-size:13px;opacity:.9;text-transform:uppercase;display:flex;align-items:center;gap:10px}
 #login .lgbrand i{width:10px;height:10px;border-radius:50%;background:#F5457F;box-shadow:0 0 0 0 rgba(245,69,127,.7);animation:lgp 2s infinite}
 @keyframes lgp{70%{box-shadow:0 0 0 12px rgba(245,69,127,0)}100%{box-shadow:0 0 0 0 rgba(245,69,127,0)}}
@@ -1022,6 +1023,7 @@ function loginUI(msg,busy){loginCSS();let el=document.getElementById("login");if
   <div id="lgm" role="alert">${e(msg||"")}</div><button id="lgb" type="submit">Entrar</button>
   <div class="lgnote">Esqueceu a senha? Peça ao administrador para redefinir.</div></form>`;
  el.innerHTML=`<div class="lgL"><div class="lggrid"></div><div class="lgbrand"><img src="${LOGO_W}" alt="Mega OOH" class="lglogo"></div><div><div class="lghello" id="lgh"></div><div class="lgclock" id="lgclk"></div><div class="lgdow" id="lgw"></div><div class="lgdt" id="lgd"></div>${bb}</div><div class="lgfoot">Matriz VT × Painéis · Gestão operacional</div></div><div class="lgR">${right}</div>`;
+ {const B=el.querySelector(".lgbb");if(B){let T=0;const on=()=>{clearTimeout(T);B.classList.add("t1");B.classList.remove("t2");T=setTimeout(()=>B.classList.add("t2"),2000)},off=()=>{clearTimeout(T);B.classList.remove("t1","t2")};B.addEventListener("mouseenter",on);B.addEventListener("mouseleave",off);B.addEventListener("focus",on);B.addEventListener("blur",off);B.addEventListener("click",()=>B.classList.contains("t1")?off():on())}}
  loginClock();clearInterval(window.__lgt);window.__lgt=setInterval(()=>{if(!document.getElementById("lgclk")){clearInterval(window.__lgt);return}loginClock()},1000);
  if(!busy){const f=document.getElementById("lgf"),I=document.getElementById("lge"),P=document.getElementById("lgp");
   try{const m=localStorage.getItem("mvt_lg_email");if(m){I.value=m;document.getElementById("lgr").checked=true}}catch(_){}

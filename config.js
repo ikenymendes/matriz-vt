@@ -5,6 +5,6 @@
 //  Para usar o sistema SEM nuvem (modo local/Drive), apague este arquivo.
 // ======================================================================
 window.MVT_CLOUD = {
-  url:  "https://supabase.com/dashboard/project/xpxwljwvaqaeiolapuci",
+  url:  "https://xpxwljwvaqaeiolapuci.supabase.co",
   anon: "sb_publishable_FWqRbySRQJkVW-sjq-lTFQ_p1bYPjZ_"
 };

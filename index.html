@@ -860,7 +860,7 @@ const plStop=new Set(["led","painel","painéis","paineis","sentido","horizontal"
 const plTok=s=>new Set(plNorm(s).split(/[^a-z0-9]+/).filter(t=>t&&!plStop.has(t)&&(t.length>2||/\d/.test(t))));
 function plMatch(nome){const A=plTok(nome);if(A.size<2)return null;let best=null,bs=0;for(const p of ALL()){const B=plTok((p.nome||"")+" "+(p.end||""));if(B.size<2)continue;let c=0,num=false;A.forEach(t=>{if(B.has(t)){c++;if(/\d{2,}/.test(t))num=true}});const sc=c/Math.min(A.size,B.size);if(c>=2&&sc>bs){bs=sc;best=p;best._n=num}}return best&&bs>=0.6?best:null}
 async function plLoad(){if(!CLD||PL.busy)return;PL.busy=true;PL.err="";if(view==="pl")plPaint();
- try{let r=null;for(const fn of [PLFN||"players-status","players-status","dynamic-task"]){r=await sb("/functions/v1/"+fn,{method:"POST",body:{}});if(r.status!==404){PLFN=fn;break}}let j=null;try{j=await r.json()}catch(_){}
+ try{let r=null,rede=0;for(const fn of [...new Set([PLFN,"players-status","dynamic-task"].filter(Boolean))]){try{r=await sb("/functions/v1/"+fn,{method:"POST",body:{}})}catch(_){rede++;r=null;continue}if(r.status!==404){PLFN=fn;break}}if(!r){PL.err=rede?"Não consegui falar com a função no Supabase. Confira se ela foi publicada (Edge Functions) e se a opção Verify JWT está desligada.":"Sem conexão com o servidor.";PL.busy=false;if(view==="pl")plPaint();return}let j=null;try{j=await r.json()}catch(_){}
   if(r.status===404)PL.err="A função de verificação ainda não foi instalada no Supabase. Veja o guia (LEIA-ME, seção “Verificação de players”).";
   else if(!j||j.ok===false)PL.err=(j&&j.erro)||"Não foi possível consultar agora ("+r.status+").";
   else{PL.d=j;PLT=Date.now()}}catch(x){PL.err="Sem conexão com o servidor."}

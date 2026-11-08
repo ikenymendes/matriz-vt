@@ -865,7 +865,7 @@ const plCn=n=>({"Conta 1":"MEGA/R2","Conta 2":"MEGA"})[n]||n;
 const plGr=p=>{const g=String(p.grupo||"").trim();return /demo/i.test(g)?"":g};
 const PLST={"local assist need":"Precisa de assistência local","local assist needed":"Precisa de assistência local","assistance needed":"Precisa de assistência","assist needed":"Precisa de assistência","assistance need":"Precisa de assistência","offline":"Offline","online":"Online","no contact":"Sem contato","never connected":"Nunca conectou","disconnected":"Desconectado"};
 const plSt=s=>{const k=String(s||"").trim().toLowerCase();return PLST[k]||String(s||"").trim()};
-function plDash(){if(!CLD||ROLE==="manutencao")return"";const d=PL.d,hojeOpen=S.manut.filter(m=>m.status!=="resolvida");let h="";
+function plDash(){if(!CLD||ROLE!=="admin")return"";const d=PL.d,hojeOpen=S.manut.filter(m=>m.status!=="resolvida");let h="";
  const sec=(t,n,sub)=>`<div class="dsec"><h2>${t}</h2><span class="n">${n}</span>${sub?`<span class="mu">${sub}</span>`:""}</div>`;
  if(d){const L=d.players.map(p=>Object.assign({c:plCls(p)},p)).filter(p=>p.c!=="v").sort((a,b)=>(a.c===b.c?((b.minutos==null?1e9:b.minutos)-(a.minutos==null?1e9:a.minutos)):(a.c==="r"?-1:1)));
   h+=sec("📡 Players com problema",L.length,L.length?"o mais antigo primeiro":"");
@@ -874,14 +874,14 @@ function plDash(){if(!CLD||ROLE==="manutencao")return"";const d=PL.d,hojeOpen=S.
  if(hojeOpen.length)h+=sec("🔧 Manutenções abertas",hojeOpen.length,`<a href="#" data-a="tab" data-v="t">abrir</a>`)+`<div class="card" style="margin-bottom:14px">${hojeOpen.slice().sort(mSort).slice(0,5).map(m=>{const p=PMf(m.pid);return `<div style="padding:6px 0;border-bottom:1px solid #eee"><b>${p?e(p.nome):"(painel removido)"}</b> — 🔧 ${e(m.def)}${m.status==="moto"?' <span class="pill a">aguarda verificação</span>':""}</div>`}).join("")}</div>`;
  return h}
 const PLAL=(()=>{try{return JSON.parse(localStorage.getItem("mvt_pl_al")||"{}")}catch(_){return{}}})();
-function plAlert(){if(!PL.d||ROLE==="manutencao")return;const key=p=>(p.conta||"")+"|"+p.id;const nowOff=new Set();const novos=[];
+function plAlert(){if(!PL.d||ROLE!=="admin")return;const key=p=>(p.conta||"")+"|"+p.id;const nowOff=new Set();const novos=[];
  PL.d.players.forEach(p=>{if(PLHIDE.test(plNorm(p.nome)))return;if(p.minutos!=null&&p.minutos>=120){nowOff.add(key(p));if(!PLAL[key(p)]){PLAL[key(p)]=Date.now();novos.push(p)}}});
  Object.keys(PLAL).forEach(k=>{if(!nowOff.has(k))delete PLAL[k]});try{localStorage.setItem("mvt_pl_al",JSON.stringify(PLAL))}catch(_){}
  if(!novos.length)return;const old=document.getElementById("plpop");if(old)old.remove();
  const el=document.createElement("div");el.id="plpop";el.setAttribute("role","alertdialog");el.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(15,18,60,.55);display:flex;align-items:center;justify-content:center;padding:16px";
  el.innerHTML=`<div style="background:#fff;border-radius:18px;max-width:440px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.35);border-top:6px solid #e5484d"><div style="font-size:20px;font-weight:800;color:#c62828">🚨 Player fora do ar há mais de 2 horas</div><div style="margin:12px 0;max-height:46vh;overflow:auto">${novos.sort((a,b)=>b.minutos-a.minutos).map(p=>`<div style="padding:8px 0;border-bottom:1px solid #eee"><b>${e(p.nome)}</b><div style="font-size:13px;color:#555">${e(plFmt(p.minutos))}${(PL.d.contas||[]).length>1&&p.conta?" · "+e(plCn(p.conta)):""}</div></div>`).join("")}</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="plpx">Fechar</button><button class="btn pri" id="plpv">Ver players</button></div></div>`;
  document.body.appendChild(el);el.querySelector("#plpx").onclick=()=>el.remove();el.querySelector("#plpv").onclick=()=>{el.remove();view="pl";render()}}
-async function plLoad(){if(!CLD||PL.busy)return;PL.busy=true;PL.err="";if(view==="pl")plPaint();
+async function plLoad(){if(!CLD||ROLE!=="admin"||PL.busy)return;PL.busy=true;PL.err="";if(view==="pl")plPaint();
  try{let r=null,rede=0;for(const fn of [...new Set([PLFN,"players-status","dynamic-task"].filter(Boolean))]){try{r=await sb("/functions/v1/"+fn,{method:"POST",body:{}})}catch(_){rede++;r=null;continue}if(r.status!==404){PLFN=fn;break}}if(!r){PL.err=rede?"Não consegui falar com a função no Supabase. Confira se ela foi publicada (Edge Functions) e se a opção Verify JWT está desligada.":"Sem conexão com o servidor.";PL.busy=false;if(view==="pl")plPaint();return}let j=null;try{j=await r.json()}catch(_){}
   if(r.status===404)PL.err="A função de verificação ainda não foi instalada no Supabase. Veja o guia (LEIA-ME, seção “Verificação de players”).";
   else if(!j||j.ok===false)PL.err=(j&&j.erro)||"Não foi possível consultar agora ("+r.status+").";
@@ -906,7 +906,7 @@ function plview(){const d=PL.d;let h=`<div class="card"><div class="plb"><div st
  return h}
 document.addEventListener("input",ev=>{if(ev.target.id==="plq"){PLQ=ev.target.value;const l=$("pllist");if(l)l.innerHTML=plList()}});
 document.addEventListener("change",ev=>{if(ev.target.id==="pllg"||ev.target.id==="pllr"){const g=Math.max(1,+$("pllg").value||30),r=Math.max(1,+$("pllr").value||24);PLL.g=g;PLL.r=r;try{localStorage.setItem("mvt_pl_lim",JSON.stringify({g,r}))}catch(_){}plPaint()}});
-setInterval(()=>{if(!document.hidden&&CLD&&SES&&ROLE!=="manutencao")plLoad()},300000);setTimeout(function t(){if(CLD&&SES&&PERFIL&&ROLE!=="manutencao")plLoad();else setTimeout(t,2000)},3000);
+setInterval(()=>{if(!document.hidden&&CLD&&SES&&ROLE==="admin")plLoad()},300000);setTimeout(function t(){if(CLD&&SES&&PERFIL){if(ROLE==="admin")plLoad()}else setTimeout(t,2000)},3000);
 const eMan=()=>CLD&&ROLE==="manutencao";
 const MAN_OK=new Set(["col","mtw","mtat","mtdo","mtcf","mtcx","mtf","mtg","mtoeld","mcp","mwcopy","mwsel","sair"]);
 let mtF="ir",mtG="prio",mtO=null,mtM="";
@@ -966,7 +966,7 @@ function mobNav(){const T=$("tabs");if(!T)return;
  nav.innerHTML=main.map(bt).join("")+`<button id="mmais" class="${main.includes(view)?"":"on"}"><span>☰</span>Mais</button>`;
  const rest=["m","c","t","pl","x","e","ev","o","a"].filter(v=>T.querySelector('button[data-v="'+v+'"]'));
  sh.innerHTML=`<div class="gr"></div>${CLD&&SES&&PERFIL?`<div class="us">👤 ${e(PERFIL.nome||PERFIL.email||"")} · ${ROLE==="admin"?"admin":"operador"}</div>`:""}<div class="gd">${rest.map(v=>`<button data-a="tab" data-v="${v}" class="${view===v?"on":""}"><span>${MV_ICO[v]}</span>${MV_NAME[v]}${cnt[v]?` (${cnt[v]})`:""}</button>`).join("")}</div>${CLD&&SES?`<a href="#" class="sair" data-a="sair">Sair da conta</a>`:""}`}
-function render(){PEND=false;S.col=S.col||{};if(eMan()){view="mt";document.body.classList.add("rm")}else document.body.classList.remove("rm");const nfx=fxStat(dia().slice(0,7));{const T1=[["g","Gestão"],["r","Rotas"],["m","Motoboy"],["k","Checking ("+ckLista().length+")"],["c","Concluídos ("+S.vts.filter(isConc).length+")"]],T2=[["t","Manutenção"],...(CLD?[["pl","Verificação de players"]]:[]),["x","Fixos ("+nfx[0]+"/"+nfx[1]+")"],["e","Estáticos"],["ev","Eventos ("+evProx().length+")"],["a","Admin"]],B=(k,n,i,c)=>`<button data-a="tab" data-v="${k}" class="${c||""}${view===k?" on":""}">${i}${n}</button>`;
+function render(){PEND=false;if(view==="pl"&&CLD&&ROLE!=="admin")view="d";S.col=S.col||{};if(eMan()){view="mt";document.body.classList.add("rm")}else document.body.classList.remove("rm");const nfx=fxStat(dia().slice(0,7));{const T1=[["g","Gestão"],["r","Rotas"],["m","Motoboy"],["k","Checking ("+ckLista().length+")"],["c","Concluídos ("+S.vts.filter(isConc).length+")"]],T2=[["t","Manutenção"],...(CLD&&ROLE==="admin"?[["pl","Verificação de players"]]:[]),["x","Fixos ("+nfx[0]+"/"+nfx[1]+")"],["e","Estáticos"],["ev","Eventos ("+evProx().length+")"],["a","Admin"]],B=(k,n,i,c)=>`<button data-a="tab" data-v="${k}" class="${c||""}${view===k?" on":""}">${i}${n}</button>`;
  $("tabs").innerHTML=B("d","Dashboard",'<i class="d"></i>')+B("o","Gerência e Operação",'<i class="d"></i>')+'<div class="grp">Fluxo do VT</div>'+T1.map(([k,n],i)=>B(k,n,`<i>${i+1}</i>`,"st"+(i===T1.length-1?" last":""))).join("")+'<div class="grp">Apoio</div>'+T2.map(([k,n])=>B(k,n,'<i class="d"></i>')).join("")}
  try{mobNav()}catch(_){}
  $("app").innerHTML=({d:dashboard,o:gerencia,g:gestao,r:rotas,m:motoboy,t:manut,pl:plview,x:fixosMes,e:estaticos,ev:eventos,k:ckview,c:concl,a:admin,mt:mtec})[view]()+foot()+(eMan()?mtWelcome():"");ckShow();if(view==="pl"&&!PL.d&&!PL.busy&&!PL.err)plLoad()}

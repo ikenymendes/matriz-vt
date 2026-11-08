@@ -876,6 +876,7 @@ function plList(){const d=PL.d;if(!d)return"";const q=plNorm(PLQ);
 function plview(){const d=PL.d;let h=`<div class="card"><div class="plb"><div style="flex:1"><h2 style="margin:0">📡 Verificação de players</h2><div class="mu" style="font-size:13px">${d?"Última consulta: "+e(new Date(PLT).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}))+" · atualiza sozinho a cada 5 min":"Consulta direta ao 4YouSee"}</div></div><button class="btn pri" data-a="plr" ${PL.busy?"disabled":""}>${PL.busy?"Consultando…":"↻ Atualizar agora"}</button></div></div>`;
  if(PL.err)h+=`<div class="plmsg e" style="margin-top:12px">⚠ ${e(PL.err)}</div>`;
  if(!d&&!PL.err)h+=`<div class="plmsg" style="margin-top:12px">${PL.busy?"Consultando o 4YouSee…":"Preparando a consulta…"}</div>`;
+ if(d&&!d.total)h+=`<div class="plmsg" style="margin-top:12px">O 4YouSee respondeu, mas sem nenhum player na lista.${d.diag?"<br><small>Detalhe técnico: "+e(d.diag)+"</small>":""}<br>Isso costuma indicar que a integração do token não tem acesso aos players. Mande esse detalhe para ajustarmos.</div>`;
  if(d){const C={r:0,a:0,v:0};d.players.forEach(p=>C[plCls(p)]++);
   const K=(k,n,t,c)=>`<div style="--c:${c}" class="${PLF===k?"on":""}" data-a="plf" data-v="${k}"><b>${n}</b><span>${t}</span></div>`;
   h+=`<div class="plk">${K("todos",d.total,"Players no total","#1B1F7A")}${K("r",C.r,"🔴 Fora do ar há mais tempo","#e5484d")}${K("a",C.a,"🔵 Fora do ar há pouco tempo","#2f80ed")}${K("v",C.v,"🟢 Online","#16a34a")}</div>

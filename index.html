@@ -851,7 +851,7 @@ function ckview(){
 
 
 
-let PLFN="",PL={d:null,err:"",busy:false},PLF="off",PLQ="",PLT=0;
+let PLC="",PLFN="",PL={d:null,err:"",busy:false},PLF="off",PLQ="",PLT=0;
 const PLL=(()=>{try{return Object.assign({g:30,r:24},JSON.parse(localStorage.getItem("mvt_pl_lim")||"{}"))}catch(_){return{g:30,r:24}}})();
 const plCls=p=>p.minutos==null?"r":p.minutos<=PLL.g?"v":p.minutos>=PLL.r*60?"r":"a";
 const plFmt=m=>{if(m==null)return"nunca conectou";if(m<1)return"agora";if(m<60)return"há "+m+" min";if(m<1440){const h=Math.floor(m/60),x=m%60;return"há "+h+" h"+(x?" "+x+" min":"")}const d=Math.floor(m/1440),h=Math.floor((m%1440)/60);return"há "+d+(d>1?" dias":" dia")+(h?" "+h+" h":"")};
@@ -867,12 +867,12 @@ async function plLoad(){if(!CLD||PL.busy)return;PL.busy=true;PL.err="";if(view==
  PL.busy=false;if(view==="pl")plPaint()}
 function plPaint(){const a=$("app");if(a&&view==="pl")a.innerHTML=plview()+foot()}
 function plList(){const d=PL.d;if(!d)return"";const q=plNorm(PLQ);
- let L=d.players.map(p=>Object.assign({c:plCls(p)},p)).filter(p=>(PLF==="todos"||(PLF==="off"?p.c!=="v":p.c===PLF))&&(!q||plNorm(p.nome+" "+(p.grupo||"")).includes(q)));
+ let L=d.players.map(p=>Object.assign({c:plCls(p)},p)).filter(p=>(PLF==="todos"||(PLF==="off"?p.c!=="v":p.c===PLF))&&(!PLC||p.conta===PLC)&&(!q||plNorm(p.nome+" "+(p.grupo||"")+" "+(p.conta||"")).includes(q)));
  const key=p=>p.minutos==null?-1:p.minutos,ord={r:0,a:1,v:2};
  L.sort((a,b)=>ord[a.c]-ord[b.c]||(a.c==="v"?key(a)-key(b):key(b)-key(a)));
  if(!L.length)return `<div class="card mu" style="text-align:center;padding:26px">${PLF==="off"?"🎉 Nenhum player fora do ar.":"Nenhum player neste filtro."}</div>`;
  const COL={r:"#e5484d",a:"#2f80ed",v:"#16a34a"};
- return `<div class="pll">${L.map(p=>{const m=p.c==="v"?null:plMatch(p.nome);return `<div class="plr ${p.c}" style="--c:${COL[p.c]}"><span class="dot"></span><div class="i"><div class="n">${e(p.nome)}</div><div class="s">${e(p.grupo||"")}${p.status?" · "+e(p.status):""}</div>${m?`<span class="pt">📍 ${e(m.nome)}</span>`:""}</div><div class="t">${p.c==="v"?"Online":p.c==="a"?"Fora do ar":"FORA DO AR"}<small>${e(plFmt(p.minutos))}</small></div></div>`}).join("")}</div>`}
+ return `<div class="pll">${L.map(p=>{const m=p.c==="v"?null:plMatch(p.nome);return `<div class="plr ${p.c}" style="--c:${COL[p.c]}"><span class="dot"></span><div class="i"><div class="n">${e(p.nome)}</div><div class="s">${e(p.grupo||"")}${p.status?" · "+e(p.status):""}</div>${m?`<span class="pt">📍 ${e(m.nome)}</span>`:""}${(d.contas||[]).length>1&&p.conta?` <span class="pt" style="background:#fff0f5;color:#c2185b">${e(p.conta)}</span>`:""}</div><div class="t">${p.c==="v"?"Online":p.c==="a"?"Fora do ar":"FORA DO AR"}<small>${e(plFmt(p.minutos))}</small></div></div>`}).join("")}</div>`}
 function plview(){const d=PL.d;let h=`<div class="card"><div class="plb"><div style="flex:1"><h2 style="margin:0">📡 Verificação de players</h2><div class="mu" style="font-size:13px">${d?"Última consulta: "+e(new Date(PLT).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}))+" · atualiza sozinho a cada 5 min":"Consulta direta ao 4YouSee"}</div></div><button class="btn pri" data-a="plr" ${PL.busy?"disabled":""}>${PL.busy?"Consultando…":"↻ Atualizar agora"}</button></div></div>`;
  if(PL.err)h+=`<div class="plmsg e" style="margin-top:12px">⚠ ${e(PL.err)}</div>`;
  if(!d&&!PL.err)h+=`<div class="plmsg" style="margin-top:12px">${PL.busy?"Consultando o 4YouSee…":"Preparando a consulta…"}</div>`;
@@ -880,7 +880,7 @@ function plview(){const d=PL.d;let h=`<div class="card"><div class="plb"><div st
  if(d){const C={r:0,a:0,v:0};d.players.forEach(p=>C[plCls(p)]++);
   const K=(k,n,t,c)=>`<div style="--c:${c}" class="${PLF===k?"on":""}" data-a="plf" data-v="${k}"><b>${n}</b><span>${t}</span></div>`;
   h+=`<div class="plk">${K("todos",d.total,"Players no total","#1B1F7A")}${K("r",C.r,"🔴 Fora do ar há mais tempo","#e5484d")}${K("a",C.a,"🔵 Fora do ar há pouco tempo","#2f80ed")}${K("v",C.v,"🟢 Online","#16a34a")}</div>
-  <div class="plb"><input type="search" id="plq" placeholder="Buscar player ou grupo…" value="${e(PLQ)}"><span class="chip ${PLF==="off"?"sel":""}" data-a="plf" data-v="off">Só os que precisam de atenção (${C.r+C.a})</span><span class="nm">🟢 até <input type="number" min="1" id="pllg" value="${PLL.g}"> min · 🔴 a partir de <input type="number" min="1" id="pllr" value="${PLL.r}"> h</span></div><div id="pllist">${plList()}</div>`}
+  ${(d.contas||[]).filter(c=>c.erro).map(c=>`<div class="plmsg e" style="margin-bottom:10px">⚠ <b>${e(c.nome)}</b>: ${e(c.erro)}</div>`).join("")}${(d.contas||[]).length>1?`<div class="plb"><span class="chip ${PLC===""?"sel":""}" data-a="plc" data-v="">Todas as contas (${d.total})</span>${d.contas.map(c=>`<span class="chip ${PLC===c.nome?"sel":""}" data-a="plc" data-v="${e(c.nome)}">${e(c.nome)} (${c.total})</span>`).join("")}</div>`:""}<div class="plb"><input type="search" id="plq" placeholder="Buscar player ou grupo…" value="${e(PLQ)}"><span class="chip ${PLF==="off"?"sel":""}" data-a="plf" data-v="off">Só os que precisam de atenção (${C.r+C.a})</span><span class="nm">🟢 até <input type="number" min="1" id="pllg" value="${PLL.g}"> min · 🔴 a partir de <input type="number" min="1" id="pllr" value="${PLL.r}"> h</span></div><div id="pllist">${plList()}</div>`}
  return h}
 document.addEventListener("input",ev=>{if(ev.target.id==="plq"){PLQ=ev.target.value;const l=$("pllist");if(l)l.innerHTML=plList()}});
 document.addEventListener("change",ev=>{if(ev.target.id==="pllg"||ev.target.id==="pllr"){const g=Math.max(1,+$("pllg").value||30),r=Math.max(1,+$("pllr").value||24);PLL.g=g;PLL.r=r;try{localStorage.setItem("mvt_pl_lim",JSON.stringify({g,r}))}catch(_){}plPaint()}});
@@ -1071,6 +1071,7 @@ document.addEventListener("click",async ev=>{const el=ev.target.closest("[data-a
  else if(a==="mtw"){mtW=false;const w=$("mtw");if(w)w.remove();return}
  else if(a==="plr"){plLoad();return}
  else if(a==="plf"){PLF=v;plPaint();return}
+ else if(a==="plc"){PLC=v||"";plPaint();return}
  else if(a==="mtf")mtF=v;
  else if(a==="mtg")mtG=v;
  else if(a==="mtat"){mset(v,{at:Date.now(),atby:mtUser()});return}
